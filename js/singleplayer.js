@@ -1,7 +1,4 @@
-/**
- * @author matthew
- */
-define('singlePlayer',['App/world','App/render','App/physics','App/player','App/poly/requestAnimationFrame'],
+define('singlePlayer',['App/world','App/render','App/physics','App/player','poly/requestAnimationFrame'],
 function(World,Renderer,Physics,Player,requestAnimationFrame){
 	document.body.addEventListener('contextmenu',function(event){ 
 			event.preventDefault(); 
