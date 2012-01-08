@@ -1,4 +1,4 @@
-define('physics',['blocks'],
+define('App/physics',['App/blocks'],
 function(BLOCK){
 	console.log('Physics')
 	// ==========================================

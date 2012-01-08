@@ -1,4 +1,4 @@
-define('vector',[],
+define('App/vector',[],
 function(){
 	console.log('Vector')
 	// ==========================================

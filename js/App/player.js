@@ -1,4 +1,4 @@
-define('player',['blocks','vector','helpers'],
+define('App/player',['App/blocks','App/vector','App/helpers'],
 function(BLOCK,Vector,helpers){
 	var lineRectCollide = helpers.lineRectCollide;
 	var rectRectCollide = helpers.rectRectCollide;

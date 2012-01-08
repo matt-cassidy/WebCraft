@@ -1,4 +1,9 @@
-define('world_server',['world','fs','vector'],
+/*
+ * World Class Patch for a Node Server to save and load from a file
+ * 
+ */
+
+define('App/world_server',['App/world','fs','App/vector'],
 function(World,fs,Vector){
 	console.log('World-Server');
 	// loadFromFile( filename )

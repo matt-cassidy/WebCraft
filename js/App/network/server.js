@@ -1,4 +1,4 @@
-define('network/server',['vector', 'world','blocks'],
+define('App/network/server',['App/vector', 'App/world','App/blocks'],
 function(Vector,World,BLOCK){	
 	console.log('Network-Server');
 		

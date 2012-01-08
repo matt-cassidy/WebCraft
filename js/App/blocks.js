@@ -1,5 +1,5 @@
 
-define('blocks',['helpers'],function(helpers){
+define('App/blocks',['App/helpers'],function(helpers){
 	// ==========================================
 	// Block types
 	//

@@ -1,4 +1,4 @@
-define('network/client',['vector', 'world','blocks'],
+define('App/network/client',['App/vector', 'App/world','App/blocks'],
 function(Vector,World,BLOCK){	
 	console.log('Client');
 		

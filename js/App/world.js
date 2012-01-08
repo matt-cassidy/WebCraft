@@ -1,4 +1,4 @@
-define('world',['blocks','helpers','vector'],
+define('App/world',['App/blocks','App/helpers','App/vector'],
 function(BLOCK,helpers, Vector){
 	console.log('World');
 	// ==========================================

@@ -1,7 +1,7 @@
 /**
  * @author matthew
  */
-define('requestAnimationFrame',[],function(){
+define('App/poly/requestAnimationFrame',[],function(){
 	console.log('requestAnimation')
 	return window.requestAnimationFrame || window.mozRequestAnimationFrame ||  
                         window.webkitRequestAnimationFrame || window.msRequestAnimationFrame 

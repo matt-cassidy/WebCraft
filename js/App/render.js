@@ -1,4 +1,4 @@
-define('render',['blocks','vector','vendor/glMatrix-1.2.min'],
+define('App/render',['App/blocks','App/vector','../vendor/glMatrix-1.2.min'],
 function(BLOCK,Vector){
 	console.log('render')
 	// ==========================================

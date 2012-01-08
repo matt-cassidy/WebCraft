@@ -1,12 +1,12 @@
 /**
  * @author matthew
  */
-define('singlePlayer',['world','render','physics','player','requestAnimationFrame'],
+define('singlePlayer',['App/world','App/render','App/physics','App/player','App/poly/requestAnimationFrame'],
 function(World,Renderer,Physics,Player,requestAnimationFrame){
 	document.body.addEventListener('contextmenu',function(event){ 
 			event.preventDefault(); 
 			return false;
-	    },false)
+	},false)
 	
 	var renderCanvas = document.getElementById("renderSurface");
 	

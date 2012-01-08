@@ -1,4 +1,4 @@
-define('helpers',[],function(){
+define('App/helpers',[],function(){
 	console.log('helpers');
 	// ==========================================
 	// Helpers
