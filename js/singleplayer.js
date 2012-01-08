@@ -1,7 +1,8 @@
 /**
  * @author matthew
  */
-(function(document,World,Render,Physics,Player){
+define('singlePlayer',['world','render','physics','player','requestAnimationFrame'],
+function(World,Renderer,Physics,Player,requestAnimationFrame){
 	document.body.addEventListener('contextmenu',function(event){ 
 			event.preventDefault(); 
 			return false;
@@ -49,4 +50,4 @@
 		//while ( new Date().getTime() / 1000 - time < 0.016 );
 		requestAnimationFrame(loop, renderCanvas);
 	}, renderCanvas );
-})(document,World,Renderer,Physics,Player);
+});
