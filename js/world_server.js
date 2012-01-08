@@ -1,5 +1,5 @@
-define('world_server',['world','fs'],
-function(World,fs){
+define('world_server',['world','fs','vector'],
+function(World,fs,Vector){
 	console.log('World-Server');
 	// loadFromFile( filename )
 	//
@@ -9,13 +9,17 @@ function(World,fs){
 	
 	World.prototype.loadFromFile = function( filename )
 	{
+		console.log(filename);
 		try {
 			fs.lstatSync( filename );
 			var data = fs.readFileSync( filename, "utf8" ).split( "," );
 			this.createFromString( data[3] );
-			this.spawnPoint = new Webcraft.Vector( parseInt( data[0] ), parseInt( data[1] ), parseInt( data[2] ) );
+			this.spawnPoint = new Vector( parseInt( data[0] ), parseInt( data[1] ), parseInt( data[2] ) );
+			console.log('Read from file:',filename, " was successful");
 			return true;
 		} catch ( e ) {
+			console.log('Read from file:',filename, " was not successful");
+			console.log(e);
 			return false;
 		}
 	}
