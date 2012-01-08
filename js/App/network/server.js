@@ -11,9 +11,9 @@ function(Vector,World,BLOCK){
 	// Creates a new server listening for clients using the specified
 	// socket interface. Slots is an optional maximum amount of clients.
 	
-	function Server( socketioServer, slots )
+	function Server( config )
 	{
-		var io = this.io = socketioServer;
+		var io = this.io = config.socketServer;
 		var s = this;
 		
 		io.set( "log level", 1 );
@@ -23,10 +23,12 @@ function(Vector,World,BLOCK){
 		this.activeNicknames = {};
 		this.activeAddresses = {};
 		
-		this.maxSlots = slots;
+		this.maxSlots = config.slots;
 		this.usedSlots = 0;
 		
-		this.oneUserPerIp = true;
+		this.oneUserPerIp = config.oneUserPerIp || true;
+		this.world = config.world;
+		this.log = config.log || function(){};
 	}
 	
 	// setWorld( world )

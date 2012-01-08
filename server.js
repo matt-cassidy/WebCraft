@@ -1,5 +1,3 @@
-var log = require( 'util' ).log;
-
 var requirejs = require('./js/vendor/r.js');
 
 requirejs.config({
@@ -7,10 +5,9 @@ requirejs.config({
 	nodeRequire: require
 });
 
-requirejs(['App/helpers','App/blocks','App/world_server','App/network/server','socket.io','fs','util'],
-function (helpers,blocks,World,Server,socketio,fs,util) {
-	console.log('ServerJS');
-	
+requirejs(['App/helpers','App/blocks','App/world_server','App/network/server','socket.io','util'],
+function (helpers,blocks,World,Server,socketio,util) {
+	var log = util.log;
 	// ==========================================
 	// Server
 	//
@@ -38,22 +35,26 @@ function (helpers,blocks,World,Server,socketio,fs,util) {
 	}
 	
 	// Start server
-	var server = new Server( socketio.listen( 3000 ), 16 );
-	server.setWorld( world );
-	server.setLogger( log );
-	server.setOneUserPerIp( false );
+	var server = new Server( {
+		'socketServer': socketio.listen( 3000 ), 
+		'slots' :16,
+		'world': world,
+		'setOneUserPerIp':false,
+		'log':log
+	});
+	
 	log( "Waiting for clients..." );
 	
 	// Chat commands
-	server.on( "chat", function( client, nickname, msg )
-	{
-		if ( msg == "/spawn" ) {
+	server.on( "chat", function( client, nickname, msg ){
+        var command = msg.substr(0,(msg.indexOf(" ") === -1)? msg.length :msg.indexOf(" "));
+		var target = server.findPlayerByName( msg.substr(command.length).trim());
+		var playerlist = nickname;
+		
+		if ( command == "/spawn" ) {
 			server.setPos( client, world.spawnPoint.x, world.spawnPoint.y, world.spawnPoint.z );
 			return true;
-		} else if ( msg.substr( 0, 3 ) == "/tp" ) {
-			var target = msg.substr( 4 );
-			target = server.findPlayerByName( target );
-			
+		} else if ( command == "/tp" ) {
 			if ( target != null ) {
 					server.setPos( client, target.x, target.y, target.z );
 					server.sendMessage( nickname + " was teleported to " + target.nick + "." );
@@ -62,10 +63,7 @@ function (helpers,blocks,World,Server,socketio,fs,util) {
 				server.sendMessage( "Couldn't find that player!", client );
 				return false;
 			}
-		} else if ( msg.substr( 0, 5 ) == "/kick" && client.handshake.address.address == ADMIN_IP ) {
-			var target = msg.substr( 6 );
-			target = server.findPlayerByName( target );
-			
+		} else if ( command == "/kick" && client.handshake.address.address == ADMIN_IP ) {
 			if ( target != null ) {
 					server.kick( target.socket, "Kicked by Matt" );
 					return true;
@@ -73,35 +71,36 @@ function (helpers,blocks,World,Server,socketio,fs,util) {
 				server.sendMessage( "Couldn't find that player!", client );
 				return false;
 			}
-		} else if ( msg == "/list" ) {
-			var playerlist = "";
-			for ( var p in world.players )
-				playerlist += p + ", ";
+		} else if ( command == "/list" ) {
+			
+			for ( var p in world.players ){
+				if (world.players.hasOwnProperty(p) && p !== nickname){
+					playerlist += p + ", ";
+				}
+			}
+			
 			playerlist = playerlist.substring( 0, playerlist.length - 2 );
 			server.sendMessage( "Players: " + playerlist, client );
 			return true;
-		} else if ( msg.substr( 0, 1 ) == "/" ) {
+		} else if ( command.substr( 0, 1 ) == "/" ) {
 			server.sendMessage( "Unknown command!", client );
 			return false;
 		}
 	} );
 	
 	// Send a welcome message to new clients
-	server.on( "join", function( client, nickname )
-	{
+	server.on( "join", function( client, nickname )	{
 		server.sendMessage( "Welcome! Enjoy your stay, " + nickname + "!", client );
 		server.broadcastMessage( nickname + " joined the game.", client );
 	} );
 	
 	// And let players know of a disconnecting user
-	server.on( "leave", function( nickname )
-	{
+	server.on( "leave", function( nickname )	{
 		server.sendMessage( nickname + " left the game." );
 	} );
 	
 	// Periodical saves
-	setInterval( function()
-	{
+	setInterval( function()	{
 		world.saveToFile( "world" );
 		log( "Saved world to file." );
 	}, SECONDS_BETWEEN_SAVES * 1000 );
