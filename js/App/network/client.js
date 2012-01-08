@@ -1,7 +1,5 @@
 define('App/network/client',['App/vector', 'App/world','App/blocks'],
 function(Vector,World,BLOCK){	
-	console.log('Client');
-		
 	// ==========================================
 	// Client
 	// ==========================================
@@ -179,6 +177,8 @@ function(Vector,World,BLOCK){
 	
 	Client.prototype.onPlayerJoin = function( data )
 	{
+		data.moving = false;
+		data.aniframe = 0;
 		this.world.players[data.nick] = data;
 	}
 	
@@ -205,11 +205,19 @@ function(Vector,World,BLOCK){
 		if ( !this.world ) return;
 		
 		var pl = this.world.players[data.nick];
+		if ( Math.abs(data.x - pl.x) > 0.1 ||
+			 Math.abs(data.y - pl.y) > 0.1 ||
+			 Math.abs(data.z - pl.z) > 0.1)
+		{
+			pl.moving = true;
+		}
+	
 		pl.x = data.x;
 		pl.y = data.y;
 		pl.z = data.z;
 		pl.pitch = data.pitch;
 		pl.yaw = data.yaw;
+		window.setTimeout(function(){pl.moving=false},100);
 	}
 	
 	// onPlayerSetPos( data )
@@ -221,6 +229,6 @@ function(Vector,World,BLOCK){
 		this.world.localPlayer.pos = new Vector( data.x, data.y, data.z );
 		this.world.localPlayer.velocity = new Vector( 0, 0, 0 );
 	}
-	
+		
 	return Client;
 });
