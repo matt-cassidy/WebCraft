@@ -1,6 +1,5 @@
 define('App/network/server',['App/vector', 'App/world','App/blocks'],
 function(Vector,World,BLOCK){	
-	console.log('Network-Server');
 		
 	// ==========================================
 	// Server
@@ -11,8 +10,7 @@ function(Vector,World,BLOCK){
 	// Creates a new server listening for clients using the specified
 	// socket interface. Slots is an optional maximum amount of clients.
 	
-	function Server( config )
-	{
+	function Server( config ){
 		var io = this.io = config.socketServer;
 		var s = this;
 		
@@ -20,13 +18,13 @@ function(Vector,World,BLOCK){
 		io.sockets.on( "connection", function( socket ) { s.onConnection( socket ); } );
 		
 		this.eventHandlers = {};
-		this.activeNicknames = {};
-		this.activeAddresses = {};
+		this.activeNicknames = [];
+		this.activeAddresses = [];
 		
 		this.maxSlots = config.slots;
 		this.usedSlots = 0;
 		
-		this.oneUserPerIp = config.oneUserPerIp || true;
+		this.oneUserPerIp = config.oneUserPerIp;
 		this.world = config.world;
 		this.log = config.log || function(){};
 	}
@@ -35,8 +33,7 @@ function(Vector,World,BLOCK){
 	//
 	// Assign a world to be networked.
 	
-	Server.prototype.setWorld = function( world )
-	{
+	Server.prototype.setWorld = function( world )	{
 		this.world = world;
 	}
 	
@@ -44,8 +41,7 @@ function(Vector,World,BLOCK){
 	//
 	// Assign a log function to output activity to.
 	
-	Server.prototype.setLogger = function( fn )
-	{
+	Server.prototype.setLogger = function( fn )	{
 		this.log = fn;
 	}
 	
@@ -53,8 +49,7 @@ function(Vector,World,BLOCK){
 	//
 	// Enable/disable the one user per ip rule.
 	
-	Server.prototype.setOneUserPerIp = function( enabled )
-	{
+	Server.prototype.setOneUserPerIp = function( enabled )	{
 		this.oneUserPerIp = enabled;
 	}
 	
@@ -62,8 +57,7 @@ function(Vector,World,BLOCK){
 	//
 	// Hooks an event.
 	
-	Server.prototype.on = function( event, callback )
-	{
+	Server.prototype.on = function( event, callback )	{
 		this.eventHandlers[event] = callback;
 	}
 	
@@ -71,8 +65,7 @@ function(Vector,World,BLOCK){
 	//
 	// Send a generic message to a certain client or everyone.
 	
-	Server.prototype.sendMessage = function( msg, socket )
-	{
+	Server.prototype.sendMessage = function( msg, socket )	{
 		var obj = socket ? socket : this.io.sockets;
 		obj.emit( "msg", {
 			type: "generic",
@@ -85,8 +78,7 @@ function(Vector,World,BLOCK){
 	// Send a generic message to everyone except for the
 	// specified client.
 	
-	Server.prototype.broadcastMessage = function( msg, socket )
-	{
+	Server.prototype.broadcastMessage = function( msg, socket )	{
 		socket.broadcast.emit( "msg", {
 			type: "generic",
 			msg: msg
@@ -97,13 +89,11 @@ function(Vector,World,BLOCK){
 	//
 	// Kick a client with the specified message.
 	
-	Server.prototype.kick = function( socket, msg )
-	{
-		if ( this.log ) this.log( "Client " + socket.handshake.address.address + " was kicked (" + msg + ")." );
+	Server.prototype.kick = function( socket, msg )	{
+		this.log( "Client " + socket.handshake.address.address + " was kicked (" + msg + ")." );
 		
 		var s = this;
-		socket.get( "nickname", function( err, name )
-		{
+		socket.get( "nickname", function( err, name ) {
 			s.sendMessage( name + " was kicked (" + msg + ")." );
 			
 			socket.emit( "kick", {
@@ -117,8 +107,7 @@ function(Vector,World,BLOCK){
 	//
 	// Request a client to change their position.
 	
-	Server.prototype.setPos = function( socket, x, y, z )
-	{
+	Server.prototype.setPos = function( socket, x, y, z )	{
 		socket.emit( "setpos", {
 			x: x,
 			y: y,
@@ -130,10 +119,14 @@ function(Vector,World,BLOCK){
 	//
 	// Attempts to find a player by their nickname.
 	
-	Server.prototype.findPlayerByName = function( name )
-	{
-		for ( var p in this.world.players )
-			if ( p.toLowerCase().indexOf( name.toLowerCase() ) != -1 ) return this.world.players[p];
+	Server.prototype.findPlayerByName = function( name )	{
+		for ( var p in this.world.players ){
+			if (this.world.players.hasOwnProperty(p)){
+				if ( p.toLowerCase().indexOf( name.toLowerCase() ) != -1 ) {
+					return this.world.players[p];
+				}
+			}
+		}
 		return null;
 	}
 	
@@ -141,11 +134,10 @@ function(Vector,World,BLOCK){
 	//
 	// Called when a new client has connected.
 	
-	Server.prototype.onConnection = function( socket )
-	{
+	Server.prototype.onConnection = function( socket )	{
 		var ip = socket.handshake.address.address;
 		
-		if ( this.log ) this.log( "Client " + ip + " connected to the server." );
+		this.log( "Client " + ip + " connected to the server." );
 		
 		// Check if a slot limit is active
 		if ( this.maxSlots != null && this.usedSlots == this.maxSlots ) {
@@ -154,47 +146,54 @@ function(Vector,World,BLOCK){
 		}
 		
 		// Prevent people from blocking the server with multiple open clients
-		if ( this.activeAddresses[ip] && this.oneUserPerIp )
-		{
+		if ( this.activeAddresses[ip] && this.oneUserPerIp ) {
 			this.kick( socket, "Multiple clients connecting from the same IP address!" );
 			return;
 		}
 		this.activeAddresses[ip] = true;
-		this.usedSlots++;
+		this.usedSlots = this.usedSlots - 1;
 		
 		// Hook events
 		var s = this;
-		socket.on( "nickname", function( data ) { s.onNickname( socket, data ); } );
-		socket.on( "setblock", function( data ) { s.onBlockUpdate( socket, data ); } );
-		socket.on( "chat", function( data ) { s.onChatMessage( socket, data ); } );
-		socket.on( "player", function( data ) { s.onPlayerUpdate( socket, data ); } );
-		socket.on( "disconnect", function() { s.onDisconnect( socket ); } );
+		socket.on( "nickname", function( data ) { 
+			s.onNickname( socket, data ); 
+		} );
+		socket.on( "setblock", function( data ) { 
+			s.onBlockUpdate( socket, data ); 
+		} );
+		socket.on( "chat", function( data ) { 
+			s.onChatMessage( socket, data ); 
+		} );
+		socket.on( "player", function( data ) { 
+			s.onPlayerUpdate( socket, data ); 
+		} );
+		socket.on( "disconnect", function() { 
+			s.onDisconnect( socket ); 
+		} );
 	}
 	
 	// onNickname( socket, nickname )
 	//
 	// Called when a client has sent their nickname.
 	
-	Server.prototype.onNickname = function( socket, data )
-	{
-		if ( data.nickname.length == 0 || data.nickname.length > 15 ) return false;
+	Server.prototype.onNickname = function( socket, data )	{
+		if ( data.nickname.length == 0 || data.nickname.length > 15 ) {return false;}
 		
 		// Prevent people from changing their username
 		var s = this;
-		socket.get( "nickname", function( err, name )
-		{
-			if ( name == null )
-			{
+		socket.get( "nickname", function( err, name )	{
+			if ( name == null )	{
 				var nickname = s.sanitiseInput( data.nickname );
 				
-				if ( s.activeNicknames[nickname] )
-				{
+				if ( s.activeNicknames[nickname] )	{
 					s.kick( socket, "That username is already in use!" );
 					return;
 				}
 				
-				if ( s.log ) s.log( "Client " + socket.handshake.address.address + " is now known as " + nickname + "." );
-				if ( s.eventHandlers["join"] ) s.eventHandlers.join( socket, nickname );
+				s.log( "Client " + socket.handshake.address.address + " is now known as " + nickname + "." );
+				if ( s.eventHandlers["join"] ){ 
+					s.eventHandlers.join( socket, nickname );
+				}
 				s.activeNicknames[data.nickname] = true;
 				
 				// Associate nickname with socket
@@ -218,8 +217,7 @@ function(Vector,World,BLOCK){
 				} );
 				
 				// Tell client about other players
-				for ( var p in s.world.players )
-				{
+				for ( var p in s.world.players ){
 					var pl = s.world.players[p];
 					
 					socket.emit( "join", {
@@ -262,8 +260,7 @@ function(Vector,World,BLOCK){
 	//
 	// Called when a client wants to change a block.
 	
-	Server.prototype.onBlockUpdate = function( socket, data )
-	{
+	Server.prototype.onBlockUpdate = function( socket, data )	{
 		var world = this.world;
 		
 		if ( typeof( data.x ) != "number" || typeof( data.y ) != "number" || typeof( data.z ) != "number" || typeof( data.mat ) != "number" ) return false;
@@ -275,10 +272,8 @@ function(Vector,World,BLOCK){
 		
 		// Check if the user has authenticated themselves before allowing them to set blocks
 		var s = this;
-		socket.get( "nickname", function( err, name )
-		{
-			if ( name != null  )
-			{
+		socket.get( "nickname", function( err, name )	{
+			if ( name != null  )	{
 				try {
 					world.setBlock( data.x, data.y, data.z, material );
 					
@@ -311,24 +306,20 @@ function(Vector,World,BLOCK){
 	//
 	// Called when a client sends a chat message.
 	
-	Server.prototype.onChatMessage = function( socket, data )
-	{
+	Server.prototype.onChatMessage = function( socket, data )	{
 		if ( typeof( data.msg ) != "string" || data.msg.trim().length == 0 || data.msg.length > 100 ) return false;
 		var msg = this.sanitiseInput( data.msg );
 		
 		// Check if the user has authenticated themselves before allowing them to send messages
 		var s = this;
-		socket.get( "nickname", function( err, name )
-		{
-			if ( name != null  )
-			{
-				if ( s.log ) s.log( "<" + name + "> " + msg );
+		socket.get( "nickname", function( err, name ){
+			if ( name != null  ) {
+				s.log( "<" + name + "> " + msg );
 				
 				var callback = false;
 				if  ( s.eventHandlers["chat"] ) callback = s.eventHandlers.chat( socket, name, msg );
 				
-				if ( !callback )
-				{
+				if ( !callback ) {
 					s.io.sockets.emit( "msg", {
 						type: "chat",
 						user: name,
@@ -343,17 +334,14 @@ function(Vector,World,BLOCK){
 	//
 	// Called when a client sends a position/orientation update.
 	
-	Server.prototype.onPlayerUpdate = function( socket, data )
-	{
+	Server.prototype.onPlayerUpdate = function( socket, data )	{
 		if ( typeof( data.x ) != "number" || typeof( data.y ) != "number" || typeof( data.z ) != "number" ) return false;
 		if ( typeof( data.pitch ) != "number" || typeof( data.yaw ) != "number" ) return false;
 		
 		// Check if the user has authenticated themselves before allowing them to send updates
 		var s = this;
-		socket.get( "nickname", function( err, name )
-		{
-			if ( name != null  )
-			{
+		socket.get( "nickname", function( err, name )	{
+			if ( name != null  ) {
 				var pl = s.world.players[name];
 				pl.x = data.x;
 				pl.y = data.y;
@@ -378,26 +366,25 @@ function(Vector,World,BLOCK){
 	//
 	// Called when a client has disconnected.
 	
-	Server.prototype.onDisconnect = function( socket )
-	{
-		if ( this.log ) this.log( "Client " + socket.handshake.address.address + " disconnected." );
+	Server.prototype.onDisconnect = function( socket )	{
+		this.log( "Client " + socket.handshake.address.address + " disconnected." );
 		
-		this.usedSlots--;	
-		delete this.activeAddresses[socket.handshake.address.address];
-		
+		this.usedSlots = this.usedSlots - 1;	
+		this.activeAddresses.splice(this.activeAddresses.indexOf(socket.handshake.address.address),1)
+				
 		var s = this;
-		socket.get( "nickname", function( err, name )
-		{
-			delete s.activeNicknames[name];
-			delete s.world.players[name];
-			
+		socket.get( "nickname", function( err, name ) {
+			s.activeNicknames.splice(s.activeNicknames.indexOf(name),1);
+			s.world.players.splice(s.world.players.indexOf(name),1);
+						
 			// Inform other players
 			socket.broadcast.emit( "leave", {
 				nick: name
 			} );
 			
-			if ( s.eventHandlers["leave"] )
+			if ( s.eventHandlers["leave"] ){
 				s.eventHandlers.leave( name );
+			}
 		} );
 	}
 	
@@ -405,8 +392,7 @@ function(Vector,World,BLOCK){
 	//
 	// Prevents XSS exploits and other bad things.
 	
-	Server.prototype.sanitiseInput = function( str )
-	{
+	Server.prototype.sanitiseInput = function( str )	{
 		return str.trim().replace( /</g, "&lt;" ).replace( />/g, "&gt;" ).replace( /\\/g, "&quot" );
 	}
 	return Server;

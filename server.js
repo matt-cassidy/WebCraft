@@ -49,7 +49,7 @@ function (helpers,blocks,World,Server,socketio,util) {
 	server.on( "chat", function( client, nickname, msg ){
         var command = msg.substr(0,(msg.indexOf(" ") === -1)? msg.length :msg.indexOf(" "));
 		var target = server.findPlayerByName( msg.substr(command.length).trim());
-		var playerlist = nickname;
+		var playerlist = nickname + ". ";
 		
 		if ( command == "/spawn" ) {
 			server.setPos( client, world.spawnPoint.x, world.spawnPoint.y, world.spawnPoint.z );
