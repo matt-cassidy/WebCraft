@@ -506,7 +506,7 @@ Server.prototype.onBlockUpdate = function( socket, data )
 				var pl = s.world.players[name];
 				pl.blocks++;
 				if ( +new Date() > pl.lastBlockCheck + 1000 ) {
-					if ( pl.blocks > 6 ) {
+					if ( pl.blocks > 20 ) {
 						s.kick( socket, "Block spamming." );
 						return;
 					}

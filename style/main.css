@@ -17,6 +17,14 @@ body {
 	background: url( '../media/background.png' );
 }
 
+
+.hide {
+	visibility: hidden;
+}
+
+.show {
+	visibility: visible;
+}
 /* Render surface */
 
 #renderSurface {
@@ -26,6 +34,18 @@ body {
 	
 	width: 100%;
 	height: 100%;
+}
+
+.chatBroadcast {
+	color: #ff6;
+}
+
+.chatMessage {
+	color: #0a0;
+}
+
+.serverMessage {
+	color: #f00;
 }
 
 /* Material selector */

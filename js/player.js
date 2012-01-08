@@ -5,7 +5,7 @@
 // ==========================================
 
 // Mouse event enumeration
-MOUSE = {};
+var MOUSE = {};
 MOUSE.DOWN = 1;
 MOUSE.UP = 2;
 MOUSE.MOVE = 3;

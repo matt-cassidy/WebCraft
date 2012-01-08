@@ -11,7 +11,7 @@ var WORLD_SY = 128;
 var WORLD_SZ = 32;
 var WORLD_GROUNDHEIGHT = 16;
 var SECONDS_BETWEEN_SAVES = 60;
-var ADMIN_IP = "";
+var ADMIN_IP = "127.0.0.1";
 
 // Load modules
 var modules = {};
@@ -42,7 +42,7 @@ if ( world.loadFromFile( "world" ) ) {
 var server = new modules.network.Server( modules.io, 16 );
 server.setWorld( world );
 server.setLogger( log );
-server.setOneUserPerIp( true );
+server.setOneUserPerIp( false );
 log( "Waiting for clients..." );
 
 // Chat commands
@@ -68,7 +68,7 @@ server.on( "chat", function( client, nickname, msg )
 		target = server.findPlayerByName( target );
 		
 		if ( target != null ) {
-				server.kick( target.socket, "Kicked by Overv" );
+				server.kick( target.socket, "Kicked by Matt" );
 				return true;
 		} else {
 			server.sendMessage( "Couldn't find that player!", client );

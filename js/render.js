@@ -130,7 +130,7 @@ function Renderer( id )
 Renderer.prototype.draw = function()
 {
 	var gl = this.gl;
-	
+	var world = this.world;
 	// Initialise view
 	this.updateViewport();
 	gl.viewport( 0, 0, gl.viewportWidth, gl.viewportHeight );
