@@ -1,7 +1,7 @@
 /**
  * @author matthew
  */
-define('multiplayer',['world','render','physics','player','client','requestAnimationFrame'],
+define('multiplayer',['world','render','physics','player','network/client','requestAnimationFrame'],
 function(World,Renderer,Physics,Player, Client,requestAnimationFrame){
 
 		window.addEventListener('load', function (){

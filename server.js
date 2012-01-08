@@ -7,7 +7,7 @@ requirejs.config({
 	nodeRequire: require
 });
 
-requirejs(['helpers','blocks','world_server','server','socket.io','fs','util'],
+requirejs(['helpers','blocks','world_server','network/server','socket.io','fs','util'],
 function (helpers,blocks,World,Server,socketio,fs,util) {
 	console.log('ServerJS');
 	
