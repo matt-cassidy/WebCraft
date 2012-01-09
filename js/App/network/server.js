@@ -1,6 +1,7 @@
-define('App/network/server',['App/vector', 'App/world','App/blocks'],
-function(Vector,World,BLOCK){	
-		
+define('App/network/server',['App/vector', 'App/world','App/blocks','App/helpers'],
+function(Vector,World,BLOCK,helpers){	
+	var normaliseAngle = helpers.normaliseAngle;
+
 	// ==========================================
 	// Server
 	// ==========================================
@@ -27,6 +28,10 @@ function(Vector,World,BLOCK){
 		this.oneUserPerIp = config.oneUserPerIp;
 		this.world = config.world;
 		this.log = config.log || function(){};
+		
+		config.spawnProtection = config.spawnProtection || {};
+		this.spawnProtection = config.spawnProtection.enabled;
+		this.spawnProtectionRadius = config.spawnProtection.radius || 10;
 	}
 	
 	// setWorld( world )
@@ -268,7 +273,10 @@ function(Vector,World,BLOCK){
 		
 		if ( typeof( data.x ) != "number" || typeof( data.y ) != "number" || typeof( data.z ) != "number" || typeof( data.mat ) != "number" ) return false;
 		if ( data.x < 0 || data.y < 0 || data.z < 0 || data.x >= world.sx || data.y >= world.sy || data.z >= world.sz ) return false;
-		if ( Math.sqrt( (data.x-world.spawnPoint.x)*(data.x-world.spawnPoint.x) + (data.y-world.spawnPoint.y)*(data.y-world.spawnPoint.y) + (data.z-world.spawnPoint.z)*(data.z-world.spawnPoint.z)  ) < 10 ) return false;
+		
+		if (this.spawnProtection){
+			if ( Math.sqrt( (data.x-world.spawnPoint.x)*(data.x-world.spawnPoint.x) + (data.y-world.spawnPoint.y)*(data.y-world.spawnPoint.y) + (data.z-world.spawnPoint.z)*(data.z-world.spawnPoint.z)  ) < this.spawnProtectionRadius ) return false;
+		}
 		
 		var material = BLOCK.fromId( data.mat );
 		if ( material == null || ( !material.spawnable && data.mat != 0 ) ) return false;
@@ -342,14 +350,7 @@ function(Vector,World,BLOCK){
 	// onPlayerUpdate( socket, data )
 	//
 	// Called when a client sends a position/orientation update.
-	
-	function normaliseAngle( ang )
-	{
-		ang = ang % (Math.PI*2);
-		if ( ang < 0 ) ang = Math.PI*2 + ang;
-		return ang;
-	}
-	
+		
 	Server.prototype.onPlayerUpdate = function( socket, data )
 	{
 		if ( typeof( data.x ) != "number" || typeof( data.y ) != "number" || typeof( data.z ) != "number" ) return false;

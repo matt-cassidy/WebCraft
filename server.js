@@ -40,7 +40,11 @@ function (helpers,blocks,World,Server,socketio,util) {
 		'slots' :16,
 		'world': world,
 		'setOneUserPerIp':false,
-		'log':log
+		'log':log,
+		'spawnProtection' : {
+			'enabled' : true,
+			'radius' : 2
+		}
 	});
 	
 	log( "Waiting for clients..." );
